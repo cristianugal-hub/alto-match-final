@@ -1,4 +1,4 @@
-import { useState } from "react";
+ import { useState } from "react";
 import { motion } from "framer-motion";
 
 export default function App() {
@@ -6,10 +6,13 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [photo, setPhoto] = useState(null);
 
+  // URL del logo (puedes reemplazar por el tuyo si lo subes a Imgur)
+  const logoUrl = "https://i.imgur.com/kqZJHKT.png";
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
       {showIntro ? (
-        // PANTALLA INICIAL
+        // --- PANTALLA INICIAL ---
         <motion.div
           className="flex flex-col items-center"
           initial={{ opacity: 0 }}
@@ -18,9 +21,9 @@ export default function App() {
         >
           {/* LOGO */}
           <motion.img
-            src="https://drive.google.com/uc?export=view&id=18f1_VZa0l_cooNt6RwGrS_TxTZetNV3t"
+            src={logoUrl}
             alt="Logo Alto Match"
-            className="w-40 h-auto mb-6"
+            className="w-40 h-auto mb-6 drop-shadow-[0_0_15px_rgba(255,215,0,0.6)]"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ duration: 1.2 }}
@@ -54,7 +57,7 @@ export default function App() {
           </motion.button>
         </motion.div>
       ) : (
-        // PANTALLA PRINCIPAL
+        // --- PANTALLA PRINCIPAL ---
         <>
           <motion.h1
             className="text-6xl font-bold mb-4 text-center bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]"
@@ -161,5 +164,6 @@ export default function App() {
     </div>
   );
 }
+
 
 
