@@ -14,16 +14,15 @@ export default function App() {
         transition={{ duration: 1 }}
       >
         Alto Match
-      </motion.h1>
+     <motion.h1
+  className="text-6xl font-bold mb-4 text-center bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]"
+  initial={{ opacity: 0, y: -30 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 1 }}
+>
+  Alto Match
+</motion.h1>
 
-      <motion.p
-        className="text-gray-300 text-xl mb-8 text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8, duration: 1 }}
-      >
-        El encuentro no termina.
-      </motion.p>
 
       {!showForm ? (
         <motion.button
