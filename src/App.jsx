@@ -7,38 +7,45 @@ export default function App() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
+      
+      {/* TÍTULO CON DORADO BRILLANTE */}
       <motion.h1
-        className="text-6xl font-bold mb-4 text-center"
+        className="text-6xl font-bold mb-4 text-center bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]"
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
       >
         Alto Match
-     <motion.h1
-  className="text-6xl font-bold mb-4 text-center bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]"
-  initial={{ opacity: 0, y: -30 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 1 }}
->
-  Alto Match
-</motion.h1>
+      </motion.h1>
 
+      {/* SUBTÍTULO */}
+      <motion.p
+        className="text-gray-300 text-xl mb-8 text-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8, duration: 1 }}
+      >
+        El encuentro no termina.
+      </motion.p>
 
+      {/* BOTÓN REGISTRO */}
       {!showForm ? (
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowForm(true)}
-          className="bg-yellow-400 text-black font-semibold px-6 py-3 rounded-full shadow-md hover:bg-yellow-300 transition"
+          className="bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-600 text-black font-semibold px-6 py-3 rounded-full shadow-md hover:opacity-90 transition"
         >
           Registrarse
         </motion.button>
       ) : (
+        /* FORMULARIO DE REGISTRO */
         <motion.form
           className="bg-gray-800 p-6 rounded-2xl shadow-lg text-left max-w-sm w-full"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
+          {/* NOMBRE */}
           <label className="block mb-2 text-yellow-400 font-medium">
             Nombre:
           </label>
@@ -48,6 +55,7 @@ export default function App() {
             placeholder="Tu nombre"
           />
 
+          {/* CORREO */}
           <label className="block mb-2 text-yellow-400 font-medium">
             Correo electrónico:
           </label>
@@ -57,6 +65,7 @@ export default function App() {
             placeholder="tucorreo@email.com"
           />
 
+          {/* EMPRESA */}
           <label className="block mb-2 text-yellow-400 font-medium">
             Empresa / Proyecto:
           </label>
@@ -66,6 +75,7 @@ export default function App() {
             placeholder="Nombre de empresa o proyecto"
           />
 
+          {/* FOTO */}
           <label className="block mb-2 text-yellow-400 font-medium">
             Foto (opcional):
           </label>
@@ -87,6 +97,7 @@ export default function App() {
             </div>
           )}
 
+          {/* ESTADO */}
           <label className="block mb-2 text-yellow-400 font-medium">
             ¿Cómo estás hoy?
           </label>
@@ -97,10 +108,11 @@ export default function App() {
             <option value="buscando">Buscando algo</option>
           </select>
 
+          {/* BOTÓN ENVIAR */}
           <button
             type="button"
             onClick={() => setShowForm(false)}
-            className="mt-4 bg-yellow-400 text-black font-semibold px-4 py-2 rounded-full hover:bg-yellow-300 transition w-full"
+            className="mt-4 bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-600 text-black font-semibold px-4 py-2 rounded-full hover:opacity-90 transition w-full"
           >
             Enviar
           </button>
@@ -109,3 +121,4 @@ export default function App() {
     </div>
   );
 }
+
