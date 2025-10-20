@@ -4,11 +4,18 @@ import { db } from "./firebase";
 import { ref, push, onValue } from "firebase/database";
 
 export default function App() {
-  const [step, setStep] = useState("intro");
+  // 🔹 Restaurar progreso si ya estaba en el chat
+  const [step, setStep] = useState(localStorage.getItem("step") || "intro");
   const [photo, setPhoto] = useState(null);
-  const [name, setName] = useState("");
+  const [name, setName] = useState(localStorage.getItem("name") || "");
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+
+  // Guardar paso actual y nombre en localStorage
+  useEffect(() => {
+    localStorage.setItem("step", step);
+    localStorage.setItem("name", name);
+  }, [step, name]);
 
   // Escuchar mensajes en tiempo real
   useEffect(() => {
@@ -103,9 +110,7 @@ export default function App() {
             Registro
           </h2>
 
-          <label className="block mb-2 text-yellow-400 font-medium">
-            Nombre:
-          </label>
+          <label className="block mb-2 text-yellow-400 font-medium">Nombre:</label>
           <input
             type="text"
             className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
@@ -177,6 +182,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
