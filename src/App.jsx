@@ -1,18 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { db } from "./firebase";
-import { ref, push, onValue } from "firebase/database";
+import { ref, push, onValue, set, update } from "firebase/database";
 
 export default function App() {
-  // Vistas: register → survey → chat
   const [view, setView] = useState("register");
-
-  // Registro + encuesta
   const [photo, setPhoto] = useState(null);
   const [form, setForm] = useState({
     nombre: "",
     correo: "",
-    estado: "", // Libre, Comprometido, Buscando algo
+    estado: "",
     musica: "",
     lugar: "",
     clima: "",
@@ -20,33 +17,74 @@ export default function App() {
     motivacion: "",
   });
 
-  // Chat comunitario
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState("");
 
-  // Persistir nombre/correo para mostrar en el chat
+  const [showPeople, setShowPeople] = useState(false);
+  const [participants, setParticipants] = useState([]);
+  const [likesGivenSet, setLikesGivenSet] = useState(new Set());
+  const [likesReceivedCount, setLikesReceivedCount] = useState(0);
+
   const currentUser = useMemo(
     () => ({
-      nombre: form.nombre || localStorage.getItem("am_nombre") || "Anónimo",
-      correo: form.correo || localStorage.getItem("am_correo") || "",
+      nombre:
+        form.nombre ||
+        localStorage.getItem("am_nombre") ||
+        "Anónimo",
+      correo:
+        form.correo ||
+        localStorage.getItem("am_correo") ||
+        "",
     }),
     [form.nombre, form.correo]
   );
 
-  // Listener en tiempo real del chat comunitario
+  const emailKey = (email) =>
+    (email || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\./g, ",");
+
   useEffect(() => {
     if (view !== "chat") return;
     const messagesRef = ref(db, "messages");
     const unsub = onValue(messagesRef, (snap) => {
       const data = snap.val();
-      const list = data ? Object.values(data) : [];
-      // Orden opcional por hora si quisieras
-      setMessages(list);
+      setMessages(data ? Object.values(data) : []);
     });
     return () => unsub();
   }, [view]);
 
-  // Enviar mensaje
+  useEffect(() => {
+    if (view !== "chat") return;
+    const usersRef = ref(db, "usuarios");
+    const unsubUsers = onValue(usersRef, (snap) => {
+      const data = snap.val() || {};
+      const list = Object.values(data).filter(
+        (u) => u?.correo && emailKey(u.correo) !== emailKey(currentUser.correo)
+      );
+      setParticipants(list);
+    });
+
+    const givenRef = ref(db, `likesGiven/${emailKey(currentUser.correo)}`);
+    const unsubGiven = onValue(givenRef, (snap) => {
+      const data = snap.val() || {};
+      setLikesGivenSet(new Set(Object.keys(data)));
+    });
+
+    const receivedRef = ref(db, `likesReceived/${emailKey(currentUser.correo)}`);
+    const unsubReceived = onValue(receivedRef, (snap) => {
+      const data = snap.val() || {};
+      setLikesReceivedCount(Object.keys(data).length);
+    });
+
+    return () => {
+      unsubUsers();
+      unsubGiven();
+      unsubReceived();
+    };
+  }, [view, currentUser.correo]);
+
   const sendMessage = () => {
     if (!newMsg.trim()) return;
     const messagesRef = ref(db, "messages");
@@ -58,7 +96,6 @@ export default function App() {
     setNewMsg("");
   };
 
-  // Avatar simple (inicial)
   const initials = (name) =>
     (name || "A")
       .trim()
@@ -69,9 +106,7 @@ export default function App() {
 
   const logoUrl = "/logo.png";
 
-  // ---------- Acciones ----------
   const handleRegisterContinue = () => {
-    // Validación mínima antes de encuesta
     if (!form.nombre.trim() || !form.correo.trim() || !form.estado) {
       alert("Por favor, completa nombre, correo y estado.");
       return;
@@ -80,7 +115,6 @@ export default function App() {
   };
 
   const handleSurveyFinish = () => {
-    // Guardar usuario en Firebase
     const usersRef = ref(db, "usuarios");
     push(usersRef, {
       nombre: form.nombre.trim(),
@@ -94,16 +128,33 @@ export default function App() {
       foto: photo ? photo.name : null,
       fechaRegistro: new Date().toLocaleString(),
     });
-
-    // Persistimos nombre/correo para el chat
     localStorage.setItem("am_nombre", form.nombre.trim());
     localStorage.setItem("am_correo", form.correo.trim());
-
-    // Ir al chat
     setView("chat");
   };
 
-  // ---------- UI: Registro ----------
+  const handleLike = (otherEmail) => {
+    if (!currentUser.correo) {
+      alert("Debes tener correo para dar me gusta.");
+      return;
+    }
+    const fromKey = emailKey(currentUser.correo);
+    const toKey = emailKey(otherEmail);
+    if (!toKey) return;
+
+    const updates = {};
+    updates[`likesGiven/${fromKey}/${toKey}`] = true;
+    updates[`likesReceived/${toKey}/${fromKey}`] = true;
+    update(ref(db), updates);
+  };
+
+  const overlayRef = useRef(null);
+  const onOverlayClick = (e) => {
+    if (e.target === overlayRef.current) {
+      setShowPeople(false);
+    }
+  };
+
   if (view === "register") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
@@ -192,7 +243,6 @@ export default function App() {
     );
   }
 
-  // ---------- UI: Encuesta ----------
   if (view === "survey") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
@@ -289,29 +339,42 @@ export default function App() {
     );
   }
 
-  // ---------- UI: Chat comunitario (estilo redes) ----------
   return (
     <div className="flex flex-col items-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400">
-      {/* Header */}
       <div className="w-full max-w-md px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-full bg-yellow-600/20 border border-yellow-600 flex items-center justify-center text-yellow-300 font-bold">
             {initials(currentUser.nombre)}
           </div>
           <div className="leading-tight">
-            <div className="font-semibold">{currentUser.nombre}</div>
+            <div className="font-semibold flex items-center gap-2">
+              {currentUser.nombre}
+              {likesReceivedCount > 0 && (
+                <span className="text-xs bg-yellow-500/20 border border-yellow-500 text-yellow-300 px-2 py-0.5 rounded-full">
+                  💛 {likesReceivedCount}
+                </span>
+              )}
+            </div>
             <div className="text-xs text-yellow-300/70">{currentUser.correo}</div>
           </div>
         </div>
-        <button
-          onClick={() => setView("register")}
-          className="text-yellow-300 hover:text-yellow-100 text-sm"
-        >
-          Salir
-        </button>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowPeople(true)}
+            className="text-sm bg-yellow-500/20 border border-yellow-500 text-yellow-300 px-3 py-1.5 rounded-full hover:bg-yellow-500/25 transition"
+          >
+            Participantes 💛
+          </button>
+          <button
+            onClick={() => setView("register")}
+            className="text-yellow-300 hover:text-yellow-100 text-sm"
+          >
+            Salir
+          </button>
+        </div>
       </div>
 
-      {/* Feed */}
       <motion.div
         className="w-full max-w-md px-4 pb-28"
         initial={{ opacity: 0 }}
@@ -342,7 +405,6 @@ export default function App() {
         ))}
       </motion.div>
 
-      {/* Composer */}
       <div className="fixed bottom-0 left-0 right-0 flex items-center justify-center pb-6">
         <div className="w-full max-w-md px-4">
           <div className="bg-gray-800 border border-gray-700 rounded-2xl p-2 flex gap-2">
@@ -361,9 +423,79 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showPeople && (
+          <motion.div
+            ref={overlayRef}
+            onMouseDown={onOverlayClick}
+            className="fixed inset-0 bg-black/50 flex justify-end"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-[88%] sm:w-[420px] h-full bg-gray-900 border-l border-gray-700 p-4 overflow-y-auto"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 260, damping: 28 }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xl font-semibold text-yellow-400">Participantes</h3>
+                <button
+                  onClick={() => setShowPeople(false)}
+                  className="text-yellow-300 hover:text-yellow-100 text-sm"
+                >
+                  Cerrar ✕
+                </button>
+              </div>
+
+              {participants.length === 0 && (
+                <div className="text-yellow-300/70 text-sm">Aún no hay participantes visibles.</div>
+              )}
+
+              <div className="space-y-3">
+                {participants.map((p, idx) => {
+                  const targetKey = emailKey(p.correo);
+                  const liked = likesGivenSet.has(targetKey);
+                  return (
+                    <div
+                      key={idx}
+                      className="bg-gray-800/70 border border-gray-700 rounded-2xl p-3 flex items-center gap-3"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-yellow-600/20 border border-yellow-600 flex items-center justify-center text-yellow-300 font-bold">
+                        {initials(p.nombre)}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-yellow-300 leading-tight">
+                          {p.nombre}
+                        </div>
+                        <div className="text-xs text-yellow-300/70">{p.estado || "—"}</div>
+                      </div>
+                      <button
+                        onClick={() => handleLike(p.correo)}
+                        className={`px-3 py-1.5 rounded-full border transition ${
+                          liked
+                            ? "bg-yellow-500/20 border-yellow-500 text-yellow-300"
+                            : "bg-gray-800 border-gray-600 text-yellow-300 hover:border-yellow-500"
+                        }`}
+                        title={liked ? "Ya le diste me gusta" : "Dar me gusta"}
+                      >
+                        💛
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
 
 
 
