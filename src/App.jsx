@@ -7,7 +7,8 @@ export default function App() {
   const [photo, setPhoto] = useState(null);
 
   // URL del logo (puedes reemplazar por el tuyo si lo subes a Imgur)
-  const logoUrl = "https://i.imgur.com/kqZJHKT.png";
+const logoUrl = "/logo.png";
+
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
