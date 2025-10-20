@@ -6,35 +6,45 @@ export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [photo, setPhoto] = useState(null);
 
-  // URL del logo (puedes reemplazar por el tuyo si lo subes a Imgur)
-const logoUrl = "/logo.png";
-
+  const logoUrl = "/logo.png"; // logo en carpeta public
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
       {showIntro ? (
-        // --- PANTALLA INICIAL ---
         <motion.div
           className="flex flex-col items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
         >
-          {/* LOGO */}
-          <motion.img
-            src={logoUrl}
-            alt="Logo Alto Match"
-            className="w-40 h-auto mb-6 drop-shadow-[0_0_15px_rgba(255,215,0,0.6)]"
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 1.2 }}
-          />
+          {/* LOGO CON EFECTO DE BRILLO */}
+          <motion.div
+            className="relative w-48 h-48 mb-6 flex items-center justify-center"
+            animate={{
+              filter: [
+                "drop-shadow(0 0 10px rgba(255,215,0,0.3))",
+                "drop-shadow(0 0 25px rgba(255,215,0,0.7))",
+                "drop-shadow(0 0 10px rgba(255,215,0,0.3))",
+              ],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            <img
+              src={logoUrl}
+              alt="Logo Alto Match"
+              className="w-40 h-auto rounded-full object-contain"
+            />
+          </motion.div>
 
           <motion.h1
             className="text-7xl font-bold mb-6 text-center bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]"
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 1 }}
+            initial={{ y: -10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.9, delay: 0.15 }}
           >
             Alto Match
           </motion.h1>
@@ -43,13 +53,13 @@ const logoUrl = "/logo.png";
             className="text-gray-300 text-xl mb-10 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.4 }}
           >
             Bienvenido al encuentro que no termina ✨
           </motion.p>
 
           <motion.button
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.07 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowIntro(false)}
             className="bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-600 text-black font-semibold px-8 py-3 rounded-full shadow-md hover:opacity-90 transition"
@@ -58,7 +68,6 @@ const logoUrl = "/logo.png";
           </motion.button>
         </motion.div>
       ) : (
-        // --- PANTALLA PRINCIPAL ---
         <>
           <motion.h1
             className="text-6xl font-bold mb-4 text-center bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]"
@@ -69,18 +78,9 @@ const logoUrl = "/logo.png";
             Alto Match
           </motion.h1>
 
-          <motion.p
-            className="text-gray-300 text-xl mb-8 text-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 1 }}
-          >
-            El encuentro no termina.
-          </motion.p>
-
           {!showForm ? (
             <motion.button
-              whileHover={{ scale: 1.1 }}
+              whileHover={{ scale: 1.07 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowForm(true)}
               className="bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-600 text-black font-semibold px-6 py-3 rounded-full shadow-md hover:opacity-90 transition"
@@ -90,39 +90,31 @@ const logoUrl = "/logo.png";
           ) : (
             <motion.form
               className="bg-gray-800 p-6 rounded-2xl shadow-lg text-left max-w-sm w-full"
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
             >
-              <label className="block mb-2 text-yellow-400 font-medium">
-                Nombre:
-              </label>
+              <label className="block mb-2 text-yellow-400 font-medium">Nombre:</label>
               <input
                 type="text"
                 className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
                 placeholder="Tu nombre"
               />
 
-              <label className="block mb-2 text-yellow-400 font-medium">
-                Correo electrónico:
-              </label>
+              <label className="block mb-2 text-yellow-400 font-medium">Correo electrónico:</label>
               <input
                 type="email"
                 className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
                 placeholder="tucorreo@email.com"
               />
 
-              <label className="block mb-2 text-yellow-400 font-medium">
-                Empresa / Proyecto:
-              </label>
+              <label className="block mb-2 text-yellow-400 font-medium">Empresa / Proyecto:</label>
               <input
                 type="text"
                 className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
                 placeholder="Nombre de empresa o proyecto"
               />
 
-              <label className="block mb-2 text-yellow-400 font-medium">
-                Foto (opcional):
-              </label>
+              <label className="block mb-2 text-yellow-400 font-medium">Foto (opcional):</label>
               <input
                 type="file"
                 accept="image/*"
@@ -141,9 +133,7 @@ const logoUrl = "/logo.png";
                 </div>
               )}
 
-              <label className="block mb-2 text-yellow-400 font-medium">
-                ¿Cómo estás hoy?
-              </label>
+              <label className="block mb-2 text-yellow-400 font-medium">¿Cómo estás hoy?</label>
               <select className="w-full p-2 mb-4 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400">
                 <option value="">Selecciona tu estado</option>
                 <option value="libre">Libre</option>
