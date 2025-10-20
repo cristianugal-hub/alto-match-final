@@ -65,7 +65,11 @@ export default function App() {
               ease: "easeInOut",
             }}
           >
-            <img src={logoUrl} alt="Logo Alto Match" className="w-40 h-auto rounded-full object-contain" />
+            <img
+              src={logoUrl}
+              alt="Logo Alto Match"
+              className="w-40 h-auto rounded-full object-contain"
+            />
           </motion.div>
 
           <motion.h1
@@ -90,7 +94,7 @@ export default function App() {
 
       {/* ----------- PANTALLA DE REGISTRO ----------- */}
       {step === "register" && (
-        <motion.form
+        <motion.div
           className="bg-gray-800 p-6 rounded-2xl shadow-lg text-left max-w-sm w-full"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -99,7 +103,9 @@ export default function App() {
             Registro
           </h2>
 
-          <label className="block mb-2 text-yellow-400 font-medium">Nombre:</label>
+          <label className="block mb-2 text-yellow-400 font-medium">
+            Nombre:
+          </label>
           <input
             type="text"
             className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
@@ -108,7 +114,9 @@ export default function App() {
             onChange={(e) => setName(e.target.value)}
           />
 
-          <label className="block mb-2 text-yellow-400 font-medium">Foto (opcional):</label>
+          <label className="block mb-2 text-yellow-400 font-medium">
+            Foto (opcional):
+          </label>
           <input
             type="file"
             accept="image/*"
@@ -119,13 +127,13 @@ export default function App() {
           <motion.button
             whileHover={{ scale: 1.07 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setStep("chat")}
             type="button"
+            onClick={() => setStep("chat")}
             className="bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-600 text-black font-semibold px-6 py-2 rounded-full shadow-md hover:opacity-90 transition w-full"
           >
             Entrar al chat
           </motion.button>
-        </motion.form>
+        </motion.div>
       )}
 
       {/* ----------- PANTALLA DE CHAT ----------- */}
