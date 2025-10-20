@@ -4,34 +4,24 @@ import { db } from "./firebase";
 import { ref, push, onValue } from "firebase/database";
 
 export default function App() {
-  // 🔹 Restaurar progreso si ya estaba en el chat
-  const [step, setStep] = useState(localStorage.getItem("step") || "intro");
+  const [screen, setScreen] = useState("intro");
+  const [name, setName] = useState("");
   const [photo, setPhoto] = useState(null);
-  const [name, setName] = useState(localStorage.getItem("name") || "");
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
-  // Guardar paso actual y nombre en localStorage
+  // Leer mensajes de Firebase
   useEffect(() => {
-    localStorage.setItem("step", step);
-    localStorage.setItem("name", name);
-  }, [step, name]);
-
-  // Escuchar mensajes en tiempo real
-  useEffect(() => {
-    if (step === "chat") {
-      const messagesRef = ref(db, "messages");
-      onValue(messagesRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const loadedMessages = Object.values(data);
-          setMessages(loadedMessages);
-        } else {
-          setMessages([]);
-        }
-      });
-    }
-  }, [step]);
+    const messagesRef = ref(db, "messages");
+    onValue(messagesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setMessages(Object.values(data));
+      } else {
+        setMessages([]);
+      }
+    });
+  }, []);
 
   // Enviar mensaje
   const sendMessage = () => {
@@ -47,60 +37,41 @@ export default function App() {
 
   const logoUrl = "/logo.png";
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
-      {/* ----------- PANTALLA DE INTRODUCCIÓN ----------- */}
-      {step === "intro" && (
-        <motion.div
-          className="flex flex-col items-center"
+  // Pantalla de inicio
+  if (screen === "intro") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
+        <motion.img
+          src={logoUrl}
+          alt="Logo Alto Match"
+          className="w-40 h-auto mb-6"
+          animate={{ opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 3, repeat: Infinity }}
+        />
+        <motion.h1
+          className="text-6xl font-bold mb-6 text-center bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
         >
-          <motion.div
-            className="relative w-48 h-48 mb-6 flex items-center justify-center"
-            animate={{
-              filter: [
-                "drop-shadow(0 0 10px rgba(255,215,0,0.3))",
-                "drop-shadow(0 0 25px rgba(255,215,0,0.7))",
-                "drop-shadow(0 0 10px rgba(255,215,0,0.3))",
-              ],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
-            <img
-              src={logoUrl}
-              alt="Logo Alto Match"
-              className="w-40 h-auto rounded-full object-contain"
-            />
-          </motion.div>
+          Alto Match
+        </motion.h1>
+        <motion.button
+          whileHover={{ scale: 1.07 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setScreen("register")}
+          className="bg-yellow-400 text-black font-semibold px-8 py-3 rounded-full shadow-md hover:bg-yellow-300 transition"
+        >
+          Comenzar
+        </motion.button>
+      </div>
+    );
+  }
 
-          <motion.h1
-            className="text-6xl font-bold mb-6 text-center bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]"
-            initial={{ y: -10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.9, delay: 0.15 }}
-          >
-            Alto Match
-          </motion.h1>
-
-          <motion.button
-            whileHover={{ scale: 1.07 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setStep("register")}
-            className="bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-600 text-black font-semibold px-8 py-3 rounded-full shadow-md hover:opacity-90 transition"
-          >
-            Comenzar
-          </motion.button>
-        </motion.div>
-      )}
-
-      {/* ----------- PANTALLA DE REGISTRO ----------- */}
-      {step === "register" && (
+  // Pantalla de registro
+  if (screen === "register") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
         <motion.div
           className="bg-gray-800 p-6 rounded-2xl shadow-lg text-left max-w-sm w-full"
           initial={{ opacity: 0, scale: 0.9 }}
@@ -109,8 +80,9 @@ export default function App() {
           <h2 className="text-2xl font-semibold text-center mb-4 text-yellow-400">
             Registro
           </h2>
-
-          <label className="block mb-2 text-yellow-400 font-medium">Nombre:</label>
+          <label className="block mb-2 text-yellow-400 font-medium">
+            Nombre:
+          </label>
           <input
             type="text"
             className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
@@ -118,7 +90,6 @@ export default function App() {
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-
           <label className="block mb-2 text-yellow-400 font-medium">
             Foto (opcional):
           </label>
@@ -128,25 +99,29 @@ export default function App() {
             onChange={(e) => setPhoto(e.target.files[0])}
             className="w-full text-white mb-4"
           />
-
           <motion.button
             whileHover={{ scale: 1.07 }}
             whileTap={{ scale: 0.95 }}
             type="button"
-            onClick={() => setStep("chat")}
+            onClick={() => setScreen("chat")}
             className="bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-600 text-black font-semibold px-6 py-2 rounded-full shadow-md hover:opacity-90 transition w-full"
           >
             Entrar al chat
           </motion.button>
         </motion.div>
-      )}
+      </div>
+    );
+  }
 
-      {/* ----------- PANTALLA DE CHAT ----------- */}
-      {step === "chat" && (
+  // Pantalla de chat
+  if (screen === "chat") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
         <motion.div
           className="bg-gray-800 p-4 rounded-2xl shadow-lg text-left w-full max-w-md flex flex-col h-[80vh]"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
         >
           <h2 className="text-2xl font-semibold text-center mb-4 text-yellow-400">
             Chat en vivo ✨
@@ -178,10 +153,11 @@ export default function App() {
             </button>
           </div>
         </motion.div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
 }
+
 
 
 
