@@ -1,110 +1,118 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { db } from "./firebase";
-import { ref, push, onValue } from "firebase/database";
+import { getDatabase, ref, push } from "firebase/database";
+import { app } from "./firebase";
 
 export default function App() {
-  const [registered, setRegistered] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("");
+  const [showForm, setShowForm] = useState(false);
+  const [showSurvey, setShowSurvey] = useState(false);
   const [photo, setPhoto] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState("");
+  const [formData, setFormData] = useState({
+    nombre: "",
+    correo: "",
+    estado: "",
+    musica: "",
+    lugar: "",
+    clima: "",
+    estilo: "",
+    motivacion: "",
+  });
 
-  // Cargar mensajes desde Firebase
-  useEffect(() => {
-    const messagesRef = ref(db, "messages");
-    const unsubscribe = onValue(messagesRef, (snapshot) => {
-      const data = snapshot.val();
-      setMessages(data ? Object.values(data) : []);
-    });
-    return () => unsubscribe();
-  }, []);
+  const db = getDatabase(app);
 
-  // Enviar mensaje
-  const sendMessage = () => {
-    if (!newMessage.trim()) return;
-    const messagesRef = ref(db, "messages");
-    push(messagesRef, {
-      text: newMessage,
-      name: name || "Anónimo",
-      time: new Date().toLocaleTimeString(),
-    });
-    setNewMessage("");
-  };
-
-  const logoUrl = "/logo.png";
-
-  // Guardar registro en Firebase
   const handleRegister = () => {
-    if (!name.trim() || !email.trim() || !status) {
-      alert("Por favor completa todos los campos obligatorios.");
+    if (!formData.nombre || !formData.correo) {
+      alert("Por favor completa al menos nombre y correo");
       return;
     }
-
-    const usersRef = ref(db, "usuarios");
-    push(usersRef, {
-      nombre: name,
-      correo: email,
-      estado: status,
-      fechaRegistro: new Date().toLocaleString(),
-      foto: photo ? photo.name : null,
-    });
-
-    setRegistered(true);
+    setShowSurvey(true);
   };
 
-  // --- Pantalla de registro ---
-  if (!registered) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
-        <motion.img
-          src={logoUrl}
-          alt="Logo Alto Match"
-          className="w-40 h-auto mb-6"
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 3, repeat: Infinity }}
-        />
+  const handleSurveySubmit = () => {
+    const usuariosRef = ref(db, "usuarios");
+    push(usuariosRef, {
+      ...formData,
+      foto: photo ? photo.name : "Sin foto",
+    });
+    alert("🎉 Registro completado con éxito");
+    setShowSurvey(false);
+    setShowForm(false);
+  };
 
-        <motion.h1
-          className="text-5xl font-bold mb-6 text-center bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
+      <motion.h1
+        className="text-6xl font-bold mb-4 text-center bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,215,0,0.6)]"
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+      >
+        Alto Match
+      </motion.h1>
+
+      {!showForm && !showSurvey && (
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowForm(true)}
+          className="bg-yellow-400 text-black font-semibold px-6 py-3 rounded-full shadow-md hover:bg-yellow-300 transition"
         >
-          Alto Match
-        </motion.h1>
+          Registrarse
+        </motion.button>
+      )}
 
-        <motion.div
+      {/* FORMULARIO DE REGISTRO */}
+      {showForm && !showSurvey && (
+        <motion.form
           className="bg-gray-800 p-6 rounded-2xl shadow-lg text-left max-w-sm w-full"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
         >
-          <h2 className="text-2xl font-semibold text-center mb-4 text-yellow-400">
-            Registro
-          </h2>
-
-          <label className="block mb-2 text-yellow-400 font-medium">Nombre:</label>
+          <label className="block mb-2 text-yellow-400 font-medium">
+            Nombre:
+          </label>
           <input
             type="text"
+            value={formData.nombre}
+            onChange={(e) =>
+              setFormData({ ...formData, nombre: e.target.value })
+            }
             className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
             placeholder="Tu nombre"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
           />
 
-          <label className="block mb-2 text-yellow-400 font-medium">Correo electrónico:</label>
+          <label className="block mb-2 text-yellow-400 font-medium">
+            Correo electrónico:
+          </label>
           <input
             type="email"
+            value={formData.correo}
+            onChange={(e) =>
+              setFormData({ ...formData, correo: e.target.value })
+            }
             className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
             placeholder="tucorreo@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
           />
 
-          <label className="block mb-2 text-yellow-400 font-medium">Foto (opcional):</label>
+          <label className="block mb-2 text-yellow-400 font-medium">
+            Estado:
+          </label>
+          <select
+            value={formData.estado}
+            onChange={(e) =>
+              setFormData({ ...formData, estado: e.target.value })
+            }
+            className="w-full p-2 mb-4 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
+          >
+            <option value="">Selecciona tu estado</option>
+            <option value="libre">Libre</option>
+            <option value="comprometido">Comprometido</option>
+            <option value="buscando">Buscando algo</option>
+          </select>
+
+          <label className="block mb-2 text-yellow-400 font-medium">
+            Foto (opcional):
+          </label>
           <input
             type="file"
             accept="image/*"
@@ -112,88 +120,124 @@ export default function App() {
             className="w-full text-white mb-4"
           />
 
-          {photo && (
-            <div className="mb-4 text-center">
-              <p className="text-gray-400 text-sm mb-2">Vista previa:</p>
-              <img
-                src={URL.createObjectURL(photo)}
-                alt="Vista previa"
-                className="rounded-lg border border-gray-700 max-h-32 mx-auto"
-              />
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={handleRegister}
+            className="mt-4 bg-yellow-400 text-black font-semibold px-4 py-2 rounded-full hover:bg-yellow-300 transition w-full"
+          >
+            Continuar ➡️
+          </button>
+        </motion.form>
+      )}
 
-          <label className="block mb-2 text-yellow-400 font-medium">¿Cómo estás hoy?</label>
+      {/* ENCUESTA DE AFINIDADES */}
+      {showSurvey && (
+        <motion.div
+          className="bg-gray-800 p-6 rounded-2xl shadow-lg text-left max-w-sm w-full"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h2 className="text-2xl font-bold mb-4 text-yellow-400 text-center">
+            Conocerte mejor 💛
+          </h2>
+
+          <label className="block mb-2 text-yellow-400 font-medium">
+            Tipo de música favorita:
+          </label>
           <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            value={formData.musica}
+            onChange={(e) =>
+              setFormData({ ...formData, musica: e.target.value })
+            }
+            className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
+          >
+            <option value="">Selecciona</option>
+            <option>Rock</option>
+            <option>Pop</option>
+            <option>Reggaetón</option>
+            <option>Electrónica</option>
+            <option>Jazz</option>
+            <option>Clásica</option>
+          </select>
+
+          <label className="block mb-2 text-yellow-400 font-medium">
+            Lugar favorito:
+          </label>
+          <select
+            value={formData.lugar}
+            onChange={(e) =>
+              setFormData({ ...formData, lugar: e.target.value })
+            }
+            className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
+          >
+            <option value="">Selecciona</option>
+            <option>Playa</option>
+            <option>Montaña</option>
+            <option>Campo</option>
+            <option>Ciudad</option>
+            <option>Bosque</option>
+          </select>
+
+          <label className="block mb-2 text-yellow-400 font-medium">
+            Clima preferido:
+          </label>
+          <select
+            value={formData.clima}
+            onChange={(e) =>
+              setFormData({ ...formData, clima: e.target.value })
+            }
+            className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
+          >
+            <option value="">Selecciona</option>
+            <option>Frío</option>
+            <option>Calor</option>
+          </select>
+
+          <label className="block mb-2 text-yellow-400 font-medium">
+            Estilo social:
+          </label>
+          <select
+            value={formData.estilo}
+            onChange={(e) =>
+              setFormData({ ...formData, estilo: e.target.value })
+            }
+            className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
+          >
+            <option value="">Selecciona</option>
+            <option>Extrovertido</option>
+            <option>Introvertido</option>
+            <option>Equilibrado</option>
+          </select>
+
+          <label className="block mb-2 text-yellow-400 font-medium">
+            ¿Qué te motiva en este momento?
+          </label>
+          <select
+            value={formData.motivacion}
+            onChange={(e) =>
+              setFormData({ ...formData, motivacion: e.target.value })
+            }
             className="w-full p-2 mb-4 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
           >
-            <option value="">Selecciona una opción</option>
-            <option value="Libre">Libre</option>
-            <option value="Comprometido">Comprometido</option>
-            <option value="Buscando algo">Buscando algo</option>
+            <option value="">Selecciona</option>
+            <option>Nuevos proyectos</option>
+            <option>Amistades</option>
+            <option>Inspiración</option>
+            <option>Relaciones</option>
           </select>
 
           <button
-            onClick={handleRegister}
-            className="bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-600 text-black font-semibold px-6 py-2 rounded-full shadow-md hover:opacity-90 transition w-full"
+            onClick={handleSurveySubmit}
+            className="mt-4 bg-yellow-400 text-black font-semibold px-4 py-2 rounded-full hover:bg-yellow-300 transition w-full"
           >
-            Registrarme
+            Finalizar registro 🎉
           </button>
         </motion.div>
-      </div>
-    );
-  }
-
-  // --- Pantalla del chat ---
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black to-gray-900 text-yellow-400 px-4">
-      <motion.div
-        className="bg-gray-800 p-4 rounded-2xl shadow-lg text-left w-full max-w-md flex flex-col h-[80vh]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold text-yellow-400">Chat en vivo ✨</h2>
-          <button
-            onClick={() => setRegistered(false)}
-            className="text-yellow-300 hover:text-yellow-100 text-sm"
-          >
-            ← Salir
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto mb-4 bg-gray-900 p-3 rounded-lg border border-gray-700">
-          {messages.map((msg, i) => (
-            <div key={i} className="mb-2">
-              <span className="font-semibold text-yellow-400">{msg.name}: </span>
-              <span className="text-gray-200">{msg.text}</span>
-              <span className="text-gray-500 text-xs ml-2">{msg.time}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Escribe un mensaje..."
-            className="flex-1 p-2 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
-          />
-          <button
-            onClick={sendMessage}
-            className="bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-600 text-black font-bold px-4 py-2 rounded-lg hover:opacity-90 transition"
-          >
-            ➤
-          </button>
-        </div>
-      </motion.div>
+      )}
     </div>
   );
 }
+
 
 
 
