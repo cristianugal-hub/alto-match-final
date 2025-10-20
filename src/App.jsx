@@ -6,6 +6,8 @@ import { ref, push, onValue } from "firebase/database";
 export default function App() {
   const [registered, setRegistered] = useState(false);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("");
   const [photo, setPhoto] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -36,14 +38,16 @@ export default function App() {
 
   // Guardar registro en Firebase
   const handleRegister = () => {
-    if (!name.trim()) {
-      alert("Por favor, ingresa tu nombre antes de continuar.");
+    if (!name.trim() || !email.trim() || !status) {
+      alert("Por favor completa todos los campos obligatorios.");
       return;
     }
 
     const usersRef = ref(db, "usuarios");
     push(usersRef, {
       nombre: name,
+      correo: email,
+      estado: status,
       fechaRegistro: new Date().toLocaleString(),
       foto: photo ? photo.name : null,
     });
@@ -91,6 +95,15 @@ export default function App() {
             onChange={(e) => setName(e.target.value)}
           />
 
+          <label className="block mb-2 text-yellow-400 font-medium">Correo electrónico:</label>
+          <input
+            type="email"
+            className="w-full p-2 mb-3 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
+            placeholder="tucorreo@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
           <label className="block mb-2 text-yellow-400 font-medium">Foto (opcional):</label>
           <input
             type="file"
@@ -109,6 +122,18 @@ export default function App() {
               />
             </div>
           )}
+
+          <label className="block mb-2 text-yellow-400 font-medium">¿Cómo estás hoy?</label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="w-full p-2 mb-4 rounded bg-gray-900 text-white border border-gray-700 focus:outline-none focus:border-yellow-400"
+          >
+            <option value="">Selecciona una opción</option>
+            <option value="Libre">Libre</option>
+            <option value="Comprometido">Comprometido</option>
+            <option value="Buscando algo">Buscando algo</option>
+          </select>
 
           <button
             onClick={handleRegister}
@@ -169,6 +194,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
