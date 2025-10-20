@@ -10,7 +10,7 @@ export default function App() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
-  // Cargar mensajes de Firebase
+  // Cargar mensajes desde Firebase
   useEffect(() => {
     const messagesRef = ref(db, "messages");
     const unsubscribe = onValue(messagesRef, (snapshot) => {
@@ -33,6 +33,23 @@ export default function App() {
   };
 
   const logoUrl = "/logo.png";
+
+  // Guardar registro en Firebase
+  const handleRegister = () => {
+    if (!name.trim()) {
+      alert("Por favor, ingresa tu nombre antes de continuar.");
+      return;
+    }
+
+    const usersRef = ref(db, "usuarios");
+    push(usersRef, {
+      nombre: name,
+      fechaRegistro: new Date().toLocaleString(),
+      foto: photo ? photo.name : null,
+    });
+
+    setRegistered(true);
+  };
 
   // --- Pantalla de registro ---
   if (!registered) {
@@ -94,10 +111,10 @@ export default function App() {
           )}
 
           <button
-            onClick={() => setRegistered(true)}
+            onClick={handleRegister}
             className="bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-600 text-black font-semibold px-6 py-2 rounded-full shadow-md hover:opacity-90 transition w-full"
           >
-            Entrar al chat 💬
+            Registrarme
           </button>
         </motion.div>
       </div>
@@ -119,7 +136,7 @@ export default function App() {
             onClick={() => setRegistered(false)}
             className="text-yellow-300 hover:text-yellow-100 text-sm"
           >
-            ← Volver
+            ← Salir
           </button>
         </div>
 
@@ -152,6 +169,7 @@ export default function App() {
     </div>
   );
 }
+
 
 
 
